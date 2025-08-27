@@ -1,0 +1,281 @@
+<!DOCTYPE html><html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tic-Tac-Toe — Acode</title>
+  <style>
+    :root{
+      --bg:#0f172a;        /* slate-900 */
+      --panel:#111827;     /* gray-900 */
+      --tile:#1f2937;      /* gray-800 */
+      --line:#334155;      /* slate-700 */
+      --accent:#22d3ee;    /* cyan-400 */
+      --accent-2:#a78bfa;  /* violet-400 */
+      --text:#e5e7eb;      /* gray-200 */
+      --muted:#9ca3af;     /* gray-400 */
+      --win:#22c55e;       /* green-500 */
+      --draw:#f59e0b;      /* amber-500 */
+      --danger:#ef4444;    /* red-500 */
+      --radius:18px;
+      --gap:14px;
+      --tile-size:min(26vw,110px);
+      --shadow:0 10px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 700px at 20% 10%, #0b1229 0%, var(--bg) 60%);
+      color:var(--text); display:flex; min-height:100svh; align-items:center; justify-content:center; padding:24px;
+    }
+    .app{ width:100%; max-width:680px; }.card{
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+
+.header{ display:flex; align-items:center; justify-content:space-between; padding:18px 18px 8px 18px; gap:12px }
+.title{ display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.3px }
+.logo{
+  width:36px; height:36px; border-radius:10px; display:grid; place-items:center; background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#0b1020; font-weight:900;
+  box-shadow:0 6px 16px rgba(167,139,250,.35);
+}
+
+.bar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap }
+.chip{
+  background:rgba(255,255,255,.06); color:var(--text); border:1px solid rgba(255,255,255,.12);
+  padding:8px 12px; border-radius:999px; font-size:14px; letter-spacing:.2px
+}
+
+.board-wrap{ padding:10px 18px 22px 18px }
+
+.status{
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+  border-radius:14px; padding:12px 14px; margin-bottom:14px; display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap
+}
+.status .who{ display:flex; gap:8px; align-items:center }
+.badge{ padding:6px 10px; border-radius:999px; font-weight:700; border:1px solid rgba(255,255,255,.12); }
+.x{ background:rgba(167,139,250,.1); color:var(--accent-2) }
+.o{ background:rgba(34,211,238,.1); color:var(--accent) }
+
+.board{
+  display:grid; grid-template-columns: repeat(3, var(--tile-size)); gap:var(--gap); justify-content:center; margin:8px auto 14px auto;
+}
+.cell{
+  width:var(--tile-size); height:var(--tile-size); display:grid; place-items:center; cursor:pointer; user-select:none;
+  border-radius:16px; background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.10); position:relative; transition:transform .08s ease, box-shadow .2s ease; font-size:calc(var(--tile-size) * .48);
+}
+.cell:active{ transform:scale(.98) }
+.cell::after{
+  content:""; position:absolute; inset:0; border-radius:inherit; box-shadow:inset 0 0 0 2px rgba(255,255,255,.02), inset 0 10px 30px rgba(255,255,255,.04);
+  pointer-events:none
+}
+
+.cell.disabled{ cursor:not-allowed; opacity:.8 }
+
+.mark{ font-weight:900; letter-spacing:2px; filter:drop-shadow(0 6px 12px rgba(34,211,238,.18)) }
+.mark.X{ color:var(--accent-2) }
+.mark.O{ color:var(--accent) }
+
+.cell.win{ outline:3px solid var(--win) }
+
+.controls{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:6px }
+button{
+  background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06)); color:var(--text);
+  border:1px solid rgba(255,255,255,.14); padding:10px 14px; border-radius:12px; font-weight:600; letter-spacing:.2px; cursor:pointer;
+  box-shadow:var(--shadow)
+}
+button:active{ transform:translateY(1px) }
+.danger{ border-color:rgba(239,68,68,.5); }
+
+.score{ display:flex; gap:10px; justify-content:center; margin:6px 0 0 0; flex-wrap:wrap }
+.score .box{ background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); padding:10px 12px; border-radius:12px; min-width:110px; text-align:center }
+.score .num{ display:block; font-size:20px; font-weight:800; margin-top:4px }
+
+.footer{ padding:10px 16px 16px 16px; text-align:center; color:var(--muted); font-size:13px }
+
+/* Small phones */
+@media (max-width:380px){ :root{ --tile-size:min(28vw,96px); --gap:10px } .title{ font-size:18px } }
+
+  </style>
+</head>
+<body>
+  <div class="app card">
+    <div class="header">
+      <div class="title">
+        <div class="logo">XO</div>
+        <div>
+          <div style="font-size:18px">Tic‑Tac‑Toe</div>
+          <div style="font-size:12px; color:var(--muted)">Mainkan di perangkatmu</div>
+        </div>
+      </div>
+      <div class="bar">
+        <span class="chip">Mode: <strong id="modeLabel">2 Pemain</strong></span>
+        <label class="chip" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input id="botToggle" type="checkbox" /> vs Komputer
+        </label>
+      </div>
+    </div><div class="board-wrap">
+  <div class="status">
+    <div class="who"><span>Giliran:</span> <span id="turn" class="badge x">X</span></div>
+    <div id="message" style="color:var(--muted)">Sentuh kotak untuk memasang tanda.</div>
+  </div>
+
+  <div id="board" class="board" role="grid" aria-label="Papan Tic Tac Toe"></div>
+
+  <div class="controls">
+    <button id="newRound">Ronde Baru</button>
+    <button id="resetAll" class="danger">Reset Skor</button>
+  </div>
+
+  <div class="score">
+    <div class="box">X Menang <span id="scoreX" class="num">0</span></div>
+    <div class="box">O Menang <span id="scoreO" class="num">0</span></div>
+    <div class="box">Seri <span id="scoreD" class="num">0</span></div>
+  </div>
+</div>
+
+<div class="footer">Dibuat untuk Acode — HTML satu file, tanpa internet.</div>
+
+  </div>  <script>
+    const boardEl = document.getElementById('board');
+    const turnEl = document.getElementById('turn');
+    const msgEl = document.getElementById('message');
+    const scoreXEl = document.getElementById('scoreX');
+    const scoreOEl = document.getElementById('scoreO');
+    const scoreDEl = document.getElementById('scoreD');
+    const botToggle = document.getElementById('botToggle');
+    const modeLabel = document.getElementById('modeLabel');
+
+    let board = Array(9).fill(null);
+    let current = 'X';
+    let playing = true;
+    let scores = { X:0, O:0, D:0 };
+
+    const wins = [
+      [0,1,2],[3,4,5],[6,7,8], // rows
+      [0,3,6],[1,4,7],[2,5,8], // cols
+      [0,4,8],[2,4,6]          // diags
+    ];
+
+    function drawBoard(){
+      boardEl.innerHTML = '';
+      board.forEach((val, i)=>{
+        const c = document.createElement('button');
+        c.className = 'cell';
+        c.setAttribute('role','gridcell');
+        c.setAttribute('aria-label', `Kotak ${i+1}`);
+        if(val){
+          const m = document.createElement('div');
+          m.className = `mark ${val}`; m.textContent = val; c.appendChild(m);
+        }
+        c.addEventListener('click', ()=>handleMove(i));
+        boardEl.appendChild(c);
+      });
+      updateUI();
+    }
+
+    function updateUI(){
+      turnEl.textContent = current;
+      turnEl.className = 'badge ' + (current === 'X' ? 'x' : 'o');
+      scoreXEl.textContent = scores.X; scoreOEl.textContent = scores.O; scoreDEl.textContent = scores.D;
+      document.querySelectorAll('.cell').forEach((el, i)=>{
+        el.classList.toggle('disabled', !playing || board[i]);
+      });
+    }
+
+    function handleMove(i){
+      if(!playing || board[i]) return;
+      board[i] = current;
+      drawBoard();
+      const result = checkEnd();
+      if(result) return finish(result);
+      toggleTurn();
+
+      // Bot move if enabled and still playing
+      if(botToggle.checked && playing && current === 'O'){
+        setTimeout(()=>{
+          const move = bestBotMove();
+          if(move !== null){
+            board[move] = 'O';
+            drawBoard();
+            const r2 = checkEnd();
+            if(r2) return finish(r2);
+            toggleTurn();
+          }
+        }, 220);
+      }
+    }
+
+    function toggleTurn(){ current = current === 'X' ? 'O' : 'X'; updateUI(); }
+
+    function lineIf(player){
+      for(const [a,b,c] of wins){
+        if(board[a]===player && board[b]===player && board[c]===player) return [a,b,c];
+      }
+      return null;
+    }
+
+    function checkEnd(){
+      const wx = lineIf('X'); if(wx) return { type:'W', player:'X', line:wx };
+      const wo = lineIf('O'); if(wo) return { type:'W', player:'O', line:wo };
+      if(board.every(Boolean)) return { type:'D' };
+      return null;
+    }
+
+    function finish(res){
+      playing = false;
+      if(res.type==='W'){
+        scores[res.player]++;
+        msgEl.textContent = `Pemenang: ${res.player}! Tekan Ronde Baru.`;
+        res.line.forEach(i=>{
+          const el = boardEl.children[i];
+          el.classList.add('win');
+        });
+      }else{
+        scores.D++;
+        msgEl.textContent = 'Seri! Tekan Ronde Baru.';
+        document.querySelectorAll('.cell').forEach(el=> el.style.outline = `3px dashed var(--draw)`);
+      }
+      updateUI();
+    }
+
+    function resetRound(){
+      board = Array(9).fill(null);
+      current = 'X';
+      playing = true;
+      msgEl.textContent = 'Ronde baru — X mulai.';
+      drawBoard();
+    }
+
+    function resetAll(){ scores={X:0,O:0,D:0}; resetRound(); }
+
+    // Simple bot: menangkan dulu, blokir, ambil tengah, ambil sudut, lalu acak
+    function bestBotMove(){
+      // 1. If can win
+      for(let i=0;i<9;i++) if(!board[i]){ board[i]='O'; if(lineIf('O')){ board[i]=null; return i } board[i]=null }
+      // 2. Block X
+      for(let i=0;i<9;i++) if(!board[i]){ board[i]='X'; if(lineIf('X')){ board[i]=null; return i } board[i]=null }
+      // 3. Center
+      if(!board[4]) return 4;
+      // 4. Corners
+      const corners=[0,2,6,8].filter(i=>!board[i]); if(corners.length) return corners[Math.floor(Math.random()*corners.length)];
+      // 5. Sides
+      const sides=[1,3,5,7].filter(i=>!board[i]); if(sides.length) return sides[Math.floor(Math.random()*sides.length)];
+      return null;
+    }
+
+    document.getElementById('newRound').addEventListener('click', resetRound);
+    document.getElementById('resetAll').addEventListener('click', resetAll);
+
+    botToggle.addEventListener('change', () => {
+      modeLabel.textContent = botToggle.checked ? 'vs Komputer' : '2 Pemain';
+      resetRound();
+    });
+
+    // Init
+    drawBoard();
+  </script></body>
+</html>
